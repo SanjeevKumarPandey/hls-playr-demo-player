@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+		<link rel="stylesheet" href="./mmd.css">
+		<script src="https://cdn.plyr.io/3.6.2/plyr.js"></script>
+		<link rel="stylesheet" href="https://cdn.plyr.io/3.6.2/plyr.css" />
+	</head>
+	<body data-version="0.1">
+		<div class="container-fluid">
+			<nav>
+				<h1 id="project-name">HLS + Playr Demo Player</h1>
+				<div id="project-info" data-toggle="tooltip" title="&copy; 2020-2021 Sanjeev Pandey">
+					<h6>&#x1F6C8;</h6>
+				</div>
+			</nav>
+			<div class="row">
+				<div class="col-lg-12">
+						<div class="container">
+							<div class="container-child">
+								<video controls crossorigin playsinline poster="https://bitdash-a.akamaihd.net/content/sintel/poster.png" data-plyr-config="{}"></video>
+							</div>
+						</div>
+				</div>
+				<div class="col-lg-12">
+					<p id="url"></p>
+				</div>
+				<div class="col-lg-12">
+					<div id="log">
+						<p class="alert"></p>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- Plyr resources and browser polyfills are specified in the pen settings -->
+		<!-- Hls.js 0.9.x and 0.10.x both have critical bugs affecting this demo. Using fixed git hash to when it was working (0.10.0 pre-release), until https://github.com/video-dev/hls.js/issues/1790 has been resolved -->
+		<script src="https://cdn.rawgit.com/video-dev/hls.js/18bb552/dist/hls.min.js"></script>
+		<script>
+			var $log = $("#log");
+			var accountname = "";
+			var isPlayerAvailable = false;
+			var hostname = `https://${accountname}`;
+			var source = "init the source";
+			var folder = '';	// E.g. "spandey/testing";
+			var file = '';		// E.g. "cycling";
+			if (folder != "" && file != ""){
+				source = `${hostname}/${folder}/stream.ismd/manifest.m3u8?stream=${file}`;
+			} else {
+				source = 'Other URL';
+			}
+			$(document).ready(function(){
+				$("#project-name").html('HLS + Playr Demo Player <small style="float: right;">'+$(document.body).attr('data-version')+'</small>');
+				$(".alert").hide();
+				$('[data-toggle="tooltip"]').tooltip();
+				var $body = $(document.body);
+				$("#url").html("Playing "+source);
+			});
+
+			document.addEventListener('DOMContentLoaded', () => {
+
+				const video = document.querySelector('video');
+				
+				// For more options see: https://github.com/sampotts/plyr/#options
+				// captions.update is required for captions to work with hls.js
+				
+				const player = new Plyr(video, {captions: {active: true, update: true, language: 'en'}});					
+
+					if (!Hls.isSupported()) {
+						video.src = source;
+					} else {
+						// For more Hls.js options, see https://github.com/dailymotion/hls.js
+						const hls = new Hls();
+						hls.loadSource(source);
+						hls.attachMedia(video);
+						window.hls = hls;
+						
+						// Handle changing captions
+						player.on('languagechange', () => {
+							// Caption support is still flaky. See: https://github.com/sampotts/plyr/issues/994
+							setTimeout(() => hls.subtitleTrack = player.currentTrack, 50);
+						});
+					}
+					
+					// Expose player so it can be used from the console
+					window.player = player;
+			});
+			
+			function _logger(_msg_,_class_,_alertDuration_){
+				$(".alert").html(_msg_).addClass(_class_).show();
+				
+				setTimeout(()=>{$(".alert").hide().removeClass(_class_);}, _alertDuration_);
+			}
+		</script>
+				<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+		<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+		<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+		<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+	</body>
+</html>
